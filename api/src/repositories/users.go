@@ -31,6 +31,6 @@ func (repository users) Create(user models.User) (uint32, error) {
 	if error != nil {
 		return 0, error
 	}
-	defer repository.db.Close()
+
 	return uint32(lastInsertId), nil
 }

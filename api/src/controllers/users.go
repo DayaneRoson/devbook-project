@@ -4,10 +4,9 @@ import (
 	"api/src/database"
 	"api/src/models"
 	"api/src/repositories"
+	"api/src/responses"
 	"encoding/json"
-	"fmt"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -15,25 +14,30 @@ import (
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	requestBody, error := io.ReadAll(r.Body)
 	if error != nil {
-		log.Fatal(error)
+		responses.Error(w, http.StatusBadRequest, error)
+		return
 	}
 	var user models.User
 	if error = json.Unmarshal(requestBody, &user); error != nil {
-		log.Fatal(error)
+		responses.Error(w, http.StatusUnsupportedMediaType, error)
+		return
 	}
 
 	db, error := database.Connection()
 	if error != nil {
-		log.Fatal(error)
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
 	}
 
+	defer db.Close()
+
 	repository := repositories.NewUserRepository(db)
-	userId, error := repository.Create(user)
+	user.ID, error = repository.Create(user)
 	if error != nil {
-		log.Fatal(error)
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
 	}
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(fmt.Sprintf("Query executed sucessfully. Id inserted: %d", userId)))
+	responses.JSON(w, http.StatusCreated, user)
 }
 
 // GetUsers fetches all users
