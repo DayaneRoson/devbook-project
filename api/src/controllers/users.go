@@ -8,7 +8,10 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 // CreateUser creates an user
@@ -66,7 +69,28 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 
 // GetUser fetches an user
 func GetUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Reading user"))
+	parameters := mux.Vars(r)
+
+	userId, error := strconv.ParseUint(parameters["userId"], 10, 32)
+	if error != nil {
+		responses.Error(w, http.StatusBadRequest, error)
+		return
+	}
+	db, error := database.Connection()
+	if error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+	defer db.Close()
+
+	repository := repositories.NewUserRepository(db)
+	user, error := repository.FindById(userId)
+	if error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+	responses.JSON(w, http.StatusOK, user)
+
 }
 
 // UpdateUser updates an user
