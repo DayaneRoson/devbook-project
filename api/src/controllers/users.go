@@ -26,7 +26,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		responses.Error(w, http.StatusUnsupportedMediaType, error)
 		return
 	}
-	if error = user.Prepare(); error != nil {
+	if error = user.Prepare("register"); error != nil {
 		responses.Error(w, http.StatusBadRequest, error)
 		return
 	}
@@ -95,7 +95,42 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 // UpdateUser updates an user
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Update user"))
+	parameters := mux.Vars(r)
+	userId, error := strconv.ParseUint(parameters["userId"], 10, 32)
+	if error != nil {
+		responses.Error(w, http.StatusBadRequest, error)
+		return
+	}
+	body, error := io.ReadAll(r.Body)
+	if error != nil {
+		responses.Error(w, http.StatusBadRequest, error)
+		return
+	}
+	var user models.User
+	if error = json.Unmarshal(body, &user); error != nil {
+		responses.Error(w, http.StatusBadRequest, error)
+		return
+	}
+
+	if error = user.Prepare("update"); error != nil {
+		responses.Error(w, http.StatusBadRequest, error)
+		return
+	}
+
+	db, error := database.Connection()
+	if error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+	defer db.Close()
+
+	repository := repositories.NewUserRepository(db)
+	if error = repository.Update(userId, user); error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+
+	responses.JSON(w, http.StatusOK, user)
 }
 
 // DeleteUser deletes an user

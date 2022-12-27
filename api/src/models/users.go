@@ -17,15 +17,15 @@ type User struct {
 }
 
 // Prepare calls the methods to validate e format the user received
-func (user *User) Prepare() error {
-	if error := user.validate(); error != nil {
+func (user *User) Prepare(step string) error {
+	if error := user.validate(step); error != nil {
 		return error
 	}
 	user.format()
 	return nil
 }
 
-func (user *User) validate() error {
+func (user *User) validate(step string) error {
 	if user.Name == "" || user.Name == " " {
 		return errors.New("field name is required")
 	}
@@ -35,7 +35,7 @@ func (user *User) validate() error {
 	if user.Email == "" || user.Email == " " {
 		return errors.New("field email is required")
 	}
-	if user.Password == "" {
+	if user.Password == "" && step == "register" {
 		return errors.New("field password is required")
 	}
 	return nil
