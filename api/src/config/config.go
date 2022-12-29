@@ -15,6 +15,9 @@ var (
 
 	//Port is the port the API will be running on
 	Port = 0
+
+	//SecretKey is the key used to sign the token
+	SecretKey []byte
 )
 
 // ChargeConfigs initializes environment variables
@@ -32,4 +35,5 @@ func ChargeConfigs() {
 		os.Getenv("PASSWORD_DB"),
 		os.Getenv("NAME_DB"))
 
+	SecretKey = []byte(os.Getenv("SECRET_KEY"))
 }
