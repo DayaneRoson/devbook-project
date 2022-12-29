@@ -25,7 +25,7 @@ func (repository users) Create(user models.User) (uint32, error) {
 	defer statement.Close()
 	result, error := statement.Exec(user.Name, user.Nick, user.Email, user.Password)
 	if error != nil {
-		return 0, nil
+		return 0, error
 	}
 
 	lastInsertId, error := result.LastInsertId()

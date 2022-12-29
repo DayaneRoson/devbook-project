@@ -8,6 +8,6 @@ create table users(
     name varchar(50) not null,
     nick varchar(50) not null unique,
     email varchar(50) not null unique,
-    password varchar(50) not null,
+    password varchar(75) not null,
     createdAt timestamp default current_timestamp()
 );
