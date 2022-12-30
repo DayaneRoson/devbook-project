@@ -22,13 +22,13 @@ var routeUsers = []Route{
 		Uri:      "/users/{userId}",
 		Method:   http.MethodGet,
 		Function: controllers.GetUser,
-		NeedAuth: false,
+		NeedAuth: true,
 	},
 	{
 		Uri:      "/users/{userId}",
 		Method:   http.MethodPut,
 		Function: controllers.UpdateUser,
-		NeedAuth: false,
+		NeedAuth: true,
 	},
 	{
 		Uri:      "/users/{userId}",
