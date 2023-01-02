@@ -135,3 +135,16 @@ func (repository users) FindByEmail(email string) (models.User, error) {
 	}
 	return user, nil
 }
+
+func (repository users) Follow(followedUserId, followerId uint64) error {
+	statement, error := repository.db.Prepare("insert into followers(user_id, follower_id) values (?,?)")
+	if error != nil {
+		return error
+	}
+	defer statement.Close()
+
+	if _, error = statement.Exec(followedUserId, followerId); error != nil {
+		return error
+	}
+	return nil
+}
