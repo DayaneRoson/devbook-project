@@ -182,3 +182,23 @@ func (repository users) FindFollowers(userId uint64) ([]models.User, error) {
 	}
 	return users, nil
 }
+
+func (repository users) FindFollowing(userId uint64) ([]models.User, error) {
+	rows, error := repository.db.Query(`
+		select u.id, u.name, u.nick, u.email, u.createdAt 
+		from users u inner join followers f
+		on u.id = f.user_id where f.follower_id = ?`, userId)
+	if error != nil {
+		return nil, error
+	}
+	defer rows.Close()
+	var users []models.User
+	for rows.Next() {
+		var user models.User
+		if error = rows.Scan(&user.ID, &user.Name, &user.Nick, &user.Email, &user.CreatedAt); error != nil {
+			return nil, error
+		}
+		users = append(users, user)
+	}
+	return users, nil
+}
