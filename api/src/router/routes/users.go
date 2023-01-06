@@ -60,4 +60,10 @@ var routeUsers = []Route{
 		Function: controllers.FindFollowing,
 		NeedAuth: true,
 	},
+	{
+		Uri:      "/users/{userId}/refreshpassword",
+		Method:   http.MethodPost,
+		Function: controllers.RefreshPassword,
+		NeedAuth: true,
+	},
 }
