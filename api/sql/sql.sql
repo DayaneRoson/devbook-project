@@ -1,6 +1,7 @@
 create database if not exists devbook;
 use devbook;
 
+drop table if exists tweets;
 drop table if exists followers;
 drop table if exists users;
 
@@ -26,4 +27,18 @@ create table followers(
     on delete cascade,
 
     primary key(user_id, follower_id)
+);
+
+create table tweets(
+    id int auto_increment primary key,
+    title varchar(50) not null,
+    content varchar(300) not null,
+
+    author_id int not null,
+    foreign key (author_id)
+    references users(id)
+    on delete cascade,
+
+    likes int default 0,
+    createdAt timestamp default current_timestamp
 );
