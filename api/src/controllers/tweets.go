@@ -57,7 +57,24 @@ func CreateTweet(w http.ResponseWriter, r *http.Request) {
 
 // FindTweets brings tweets that would show on the user feed
 func FindTweets(w http.ResponseWriter, r *http.Request) {
-
+	userId, error := authentication.ExtractUserId(r)
+	if error != nil {
+		responses.Error(w, http.StatusUnauthorized, error)
+		return
+	}
+	db, error := database.Connection()
+	if error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+	defer db.Close()
+	repository := repositories.NewTweetRepository(db)
+	tweets, error := repository.Find(userId)
+	if error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+	responses.JSON(w, http.StatusOK, tweets)
 }
 
 // FindTweet brings an specific user

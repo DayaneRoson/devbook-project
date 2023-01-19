@@ -10,3 +10,9 @@ values
 (1, 3),
 (3, 1),
 (2, 3);
+
+insert into tweets (title, content, author_id)
+values
+("Cant copy my armor", "I am Iron Man", 1),
+("I escaped the Red Room", "They made me a killing machine", 2),
+("Hydra is still alive", "They took Bucky", 3);
