@@ -32,3 +32,24 @@ func (repository Tweets) Create(tweet models.Tweet) (uint64, error) {
 
 	return uint64(lastInsertId), nil
 }
+
+// FindById brings an specific tweet from the database
+func (repository Tweets) FindById(tweetId uint64) (models.Tweet, error) {
+	rows, error := repository.db.Query(
+		`select t.*, u.nick from 
+		tweets t inner join users u
+		on u.id = t.author_id where t.id = ?`, tweetId)
+	if error != nil {
+		return models.Tweet{}, error
+	}
+	defer rows.Close()
+
+	var tweet models.Tweet
+	if rows.Next() {
+		if error = rows.Scan(&tweet.ID, &tweet.Title, &tweet.Content,
+			&tweet.AuthorId, &tweet.Likes, &tweet.CreatedAt, &tweet.AuthorNIck); error != nil {
+			return models.Tweet{}, error
+		}
+	}
+	return tweet, nil
+}

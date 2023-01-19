@@ -9,6 +9,9 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 // CreateTweet creates a tweet
@@ -59,7 +62,25 @@ func FindTweets(w http.ResponseWriter, r *http.Request) {
 
 // FindTweet brings an specific user
 func FindTweet(w http.ResponseWriter, r *http.Request) {
-
+	parameters := mux.Vars(r)
+	tweetId, error := strconv.ParseUint(parameters["tweetId"], 10, 64)
+	if error != nil {
+		responses.Error(w, http.StatusBadRequest, error)
+		return
+	}
+	db, error := database.Connection()
+	if error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+	defer db.Close()
+	repository := repositories.NewTweetRepository(db)
+	tweet, error := repository.FindById(tweetId)
+	if error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+	responses.JSON(w, http.StatusOK, tweet)
 }
 
 // UpdateTweet updates a tweet
