@@ -59,7 +59,8 @@ func (repository tweets) Find(userId uint64) ([]models.Tweet, error) {
 	select distinct t.*, u.nick from tweets t
 	inner join users u on u.id = t.author_id
 	inner join followers f on t.author_id = f.user_id
-	where u.id = ? or f.follower_id = ?`, userId, userId)
+	where u.id = ? or f.follower_id = ?
+	order by 1 desc`, userId, userId)
 	if error != nil {
 		return nil, error
 	}
