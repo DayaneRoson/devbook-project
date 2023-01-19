@@ -31,6 +31,10 @@ func CreateTweet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	tweet.AuthorId = userId
+	if error = tweet.Prepare(); error != nil {
+		responses.Error(w, http.StatusBadRequest, error)
+		return
+	}
 
 	db, error := database.Connection()
 	if error != nil {
