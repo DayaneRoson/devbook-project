@@ -80,3 +80,17 @@ func (repository tweets) Find(userId uint64) ([]models.Tweet, error) {
 
 	return tweets, nil
 }
+
+func (repository tweets) Update(tweetId uint64, tweet models.Tweet) error {
+	statement, error := repository.db.Prepare("update tweets set title = ?, content = ? where author_id = ?")
+	if error != nil {
+		return error
+	}
+	defer statement.Close()
+
+	if _, error = statement.Exec(tweet.Title, tweet.Content, tweetId); error != nil {
+		return error
+	}
+
+	return nil
+}

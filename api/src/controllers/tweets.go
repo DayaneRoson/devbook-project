@@ -7,6 +7,7 @@ import (
 	"api/src/repositories"
 	"api/src/responses"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strconv"
@@ -102,6 +103,62 @@ func FindTweet(w http.ResponseWriter, r *http.Request) {
 
 // UpdateTweet updates a tweet
 func UpdateTweet(w http.ResponseWriter, r *http.Request) {
+	userId, error := authentication.ExtractUserId(r)
+	if error != nil {
+		responses.Error(w, http.StatusUnauthorized, error)
+		return
+	}
+
+	parameters := mux.Vars(r)
+	tweetId, error := strconv.ParseUint(parameters["tweetId"], 10, 64)
+	if error != nil {
+		responses.Error(w, http.StatusBadRequest, error)
+		return
+	}
+
+	db, error := database.Connection()
+	if error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+
+	defer db.Close()
+
+	repository := repositories.NewTweetRepository(db)
+	tweetSavedInDB, error := repository.FindById(tweetId)
+	if error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+
+	if tweetSavedInDB.AuthorId != userId {
+		responses.Error(w, http.StatusForbidden, errors.New("It's not possible to update another users tweet"))
+		return
+	}
+
+	body, error := io.ReadAll(r.Body)
+	if error != nil {
+		responses.Error(w, http.StatusUnprocessableEntity, error)
+		return
+	}
+
+	var tweet models.Tweet
+	if error = json.Unmarshal(body, &tweet); error != nil {
+		responses.Error(w, http.StatusBadRequest, error)
+		return
+	}
+
+	if error = tweet.Prepare(); error != nil {
+		responses.Error(w, http.StatusBadRequest, error)
+		return
+	}
+
+	if error = repository.Update(tweetId, tweet); error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+
+	responses.JSON(w, http.StatusNoContent, nil)
 
 }
 
