@@ -164,5 +164,43 @@ func UpdateTweet(w http.ResponseWriter, r *http.Request) {
 
 // DeleteTweet deletes a tweet
 func DeleteTweet(w http.ResponseWriter, r *http.Request) {
+	userId, error := authentication.ExtractUserId(r)
+	if error != nil {
+		responses.Error(w, http.StatusUnauthorized, error)
+		return
+	}
 
+	parameters := mux.Vars(r)
+	tweetId, error := strconv.ParseUint(parameters["tweetId"], 10, 64)
+	if error != nil {
+		responses.Error(w, http.StatusBadRequest, error)
+		return
+	}
+
+	db, error := database.Connection()
+	if error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+
+	defer db.Close()
+
+	repository := repositories.NewTweetRepository(db)
+	tweetSavedInDB, error := repository.FindById(tweetId)
+	if error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+
+	if tweetSavedInDB.AuthorId != userId {
+		responses.Error(w, http.StatusForbidden, errors.New("It's not possible to delete another users tweet"))
+		return
+	}
+
+	if error = repository.Delete(tweetId); error != nil {
+		responses.Error(w, http.StatusInternalServerError, error)
+		return
+	}
+
+	responses.JSON(w, http.StatusNoContent, nil)
 }

@@ -94,3 +94,17 @@ func (repository tweets) Update(tweetId uint64, tweet models.Tweet) error {
 
 	return nil
 }
+
+func (repository tweets) Delete(tweetId uint64) error {
+	statement, error := repository.db.Prepare("delete from tweets where id = ?")
+	if error != nil {
+		return error
+	}
+
+	defer statement.Close()
+
+	if _, error = statement.Exec(tweetId); error != nil {
+		return error
+	}
+	return nil
+}
